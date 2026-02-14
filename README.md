@@ -50,17 +50,49 @@ pnpm run type-check
 
 ---
 
-## Environment
+## Backend API
 
-Create a `.env` file:
+ScalarAI requires a separate backend API built with **Deno + Express**:
+
+👉 [https://github.com/CuriousDev101/ScalarAI-API](https://github.com/CuriousDev101/ScalarAI-API)
+
+The backend handles:
+
+* Authentication (JWT)
+* Document upload & management
+* Vector search (pgvector)
+* Streaming chat responses (SSE)
+
+### Running with Local Backend
+
+1. Clone and start the backend (`ScalarAI-API`)
+```bash
+git clone https://github.com/CuriousDev101/ScalarAI-API.git
+
+```
+2. By default it runs on:
+
+```
+http://localhost:3000
+```
+
+3. In the frontend project, create a `.env` file:
 
 ```
 VITE_API_URL=http://localhost:3000
 ```
 
-The app uses `import.meta.env.VITE_API_URL` as the API base URL.
+4. Start the frontend:
 
-⚠ Ensure `ChatWidget.vue` also uses this variable instead of a hardcoded URL.
+```bash
+pnpm dev
+```
+
+The frontend will now communicate with the backend at:
+
+```
+${import.meta.env.VITE_API_URL}
+```
 
 ---
 
