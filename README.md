@@ -1,42 +1,170 @@
 # ScalarAI
 
-This template should help get you started developing with Vue 3 in Vite.
+A RAG-powered chatbot and document assistant built with Vue 3, Vite, and TypeScript.
 
-## Recommended IDE Setup
+It provides:
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+* Streaming chat-based document Q&A (SSE)
+* Document upload & admin interface
+* Simple JWT authentication (Pinia + local storage)
 
-## Recommended Browser Setup
+---
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+## Quick Start
 
-## Type Support for `.vue` Imports in TS
+**Requirements**
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+* Node.js ≥ 20.19.0 or ≥ 22.12.0
+* pnpm (recommended)
 
-## Customize configuration
+Install dependencies:
 
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
+```bash
 pnpm install
 ```
 
-### Compile and Hot-Reload for Development
+Start dev server:
 
-```sh
+```bash
 pnpm dev
+# http://localhost:5173
 ```
 
-### Type-Check, Compile and Minify for Production
+Build:
 
-```sh
+```bash
 pnpm build
 ```
+
+Preview production build:
+
+```bash
+pnpm preview
+```
+
+Type check:
+
+```bash
+pnpm run type-check
+```
+
+---
+
+## Environment
+
+Create a `.env` file:
+
+```
+VITE_API_URL=http://localhost:3000
+```
+
+The app uses `import.meta.env.VITE_API_URL` as the API base URL.
+
+⚠ Ensure `ChatWidget.vue` also uses this variable instead of a hardcoded URL.
+
+---
+
+## Features
+
+* Vue 3 + Vite + TypeScript
+* Pinia auth store
+* Axios interceptor with Bearer token
+* Streaming chat (SSE-style parsing)
+* Admin document management
+* Tailwind + DaisyUI UI
+
+---
+
+## Routes
+
+* `/` — Home
+* `/login` — Login
+* `/signup` — Signup
+* `/chat` — Chat (auth required)
+* `/admin` — Admin (auth required)
+
+Routes with `meta.requiresAuth` redirect to `/login` if not authenticated.
+
+---
+
+## Authentication
+
+Managed via Pinia (`useAuthStore.ts`).
+
+* `signup(name, email, password)`
+* `login(email, password)`
+* `logout()`
+
+On success:
+
+* Token + user stored in localStorage
+* Axios automatically attaches `Authorization: Bearer <token>`
+
+---
+
+## Chat (Streaming SSE)
+
+The chat:
+
+* Sends `POST /api/chat/stream`
+* Body: `{ message: string }`
+* Parses streamed `event:` and `data:` blocks
+* Appends `content` events progressively
+* Displays optional `sources`
+
+Backend must:
+
+* Support streaming responses
+* Allow CORS for frontend origin
+* Send chunked/SSE-style responses
+
+---
+
+## Expected API Endpoints
+
+**Auth**
+
+* `POST /api/auth/signup`
+* `POST /api/auth/login`
+
+**Admin**
+
+* `GET /api/admin/documents`
+* `POST /api/admin/upload` (multipart/form-data)
+
+**Chat**
+
+* `POST /api/chat/stream` (streaming response)
+
+Authenticated routes require Bearer token.
+
+---
+
+## Project Structure
+
+```
+src/
+  main.ts
+  router/
+  stores/
+  views/
+  components/
+  utils/
+```
+
+Key files:
+
+* `useAuthStore.ts` — auth logic
+* `axios.ts` — API client + interceptor
+* `ChatWidget.vue` — streaming chat
+* `router/index.ts` — routes & guards
+
+---
+
+## Troubleshooting
+
+* Ensure Node version matches `engines`
+* Replace hardcoded API URLs with `VITE_API_URL`
+* Confirm backend CORS supports streaming
+* If token not sent, verify Pinia store + localStorage
+* Use `pnpm run type-check` for TS errors
