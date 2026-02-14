@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import router from '@/router';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { computed, onUpdated, ref, watch, watchEffect } from 'vue';
+import { computed } from 'vue';
 
 const authStore = useAuthStore()
-const user = ref(authStore.user)
-const name = ref(authStore.user?.name.split(" ")[0])
 
-watch(user, () => {
-  name.value = user.value?.name.split(" ")[0];
-})
+const name = computed(() => {
+  return authStore.user?.name ? authStore.user.name.split(" ")[0] : '';
+});
 
 const logout = () => {
   authStore.logout()
@@ -31,12 +29,12 @@ const logout = () => {
           <RouterLink to="/signup">Signup</RouterLink>
         </li>
         <li v-if="authStore.isAuthenticated">
-          <RouterLink to="/admin">Knowledge Dashboard</RouterLink>
+          <RouterLink to="/admin">Knowledge</RouterLink>
         </li>
         <li v-if="authStore.isAuthenticated">
-          <RouterLink to="/chat">New Chat</RouterLink>
+          <RouterLink to="/chat">Chat</RouterLink>
         </li>
-        <li v-if="authStore.isAuthenticated">
+        <li v-if="authStore.isAuthenticated" class="mr-5">
           <details>
             <summary>
               {{ name?.toUpperCase() }}

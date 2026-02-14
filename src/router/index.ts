@@ -31,7 +31,7 @@ const router = createRouter({
 			meta: {
 				requiresAuth: true,
 				// requiresAdmin: true,
-				title: "knowledge Dashboard",
+				title: "Knowledge",
 			},
 		},
 		{
@@ -41,7 +41,7 @@ const router = createRouter({
 			meta: {
 				requiresAuth: true,
 				// requiresAdmin: true,
-				title: "New Chat",
+				title: "Chat",
 			},
 		},
 	],

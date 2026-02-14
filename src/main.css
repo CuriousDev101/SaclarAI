@@ -6,3 +6,7 @@
     dark --prefersdark,
     black;
 }
+
+@layer components {
+  @import 'markstream-vue/index.css';
+}

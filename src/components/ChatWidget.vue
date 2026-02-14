@@ -2,6 +2,7 @@
 import { ref, nextTick, computed, watch } from 'vue';
 import { Send, MessageCircle, X, FileText } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/useAuthStore';
+import MarkdownRender from 'markstream-vue'
 
 const props = defineProps<{
   embedded?: boolean;
@@ -33,6 +34,10 @@ const scrollToBottom = () => {
 watch(messages, () => {
   nextTick(scrollToBottom);
 }, { deep: true });
+
+const logger = (text: string) => {
+  console.log(text)
+}
 
 const sendMessage = async () => {
   if (!message.value.trim() || loading.value) return;
@@ -73,26 +78,33 @@ const sendMessage = async () => {
       const lines = partialData.split('\n\n');
       partialData = lines.pop() || ''; // Keep the last incomplete line
 
-      for (const line of lines) {
-        if (line.startsWith('event: ')) {
-          continue;
-        }
-        if (line.startsWith('data: ')) {
-          const dataStr = line.replace('data: ', '');
-          if (!dataStr) continue;
+      // Replace your "for (const line of lines)" loop with this:
+      for (const chunkBlock of lines) {
+        // A chunkBlock contains both 'event:' and 'data:' lines
+        const linesInBlock = chunkBlock.split('\n');
+        let currentEvent = '';
 
-          try {
-            const data = JSON.parse(dataStr);
-            if (Array.isArray(data) && messages.value[botMessageIndex]) {
-              messages.value[botMessageIndex].sources = data;
-            } else if (data.text && messages.value[botMessageIndex]) {
-              messages.value[botMessageIndex].text += data.text;
-            } else if (data.error && messages.value[botMessageIndex]) {
-              messages.value[botMessageIndex].text = "Error: " + data.error;
+        for (const line of linesInBlock) {
+          if (line.startsWith('event: ')) {
+            currentEvent = line.replace('event: ', '').trim();
+          } else if (line.startsWith('data: ')) {
+            const dataStr = line.replace('data: ', '').trim();
+            if (!dataStr) continue;
+
+            try {
+              const data = JSON.parse(dataStr);
+
+              // Now handle based on the event type or data shape
+              if (currentEvent === 'sources' || Array.isArray(data)) {
+                messages.value[botMessageIndex]!.sources = data;
+              } else if (currentEvent === 'content' || data.text) {
+                messages.value[botMessageIndex]!.text += data.text;
+              } else if (currentEvent === 'error' || data.error) {
+                messages.value[botMessageIndex]!.text = "Error: " + data.error;
+              }
+            } catch (e) {
+              console.error('Failed to parse SSE data', e, 'Data string:', dataStr);
             }
-
-          } catch (e) {
-            console.error('Failed to parse SSE data', e);
           }
         }
       }
@@ -141,17 +153,21 @@ const sendMessage = async () => {
               <span>AI</span>
             </div>
           </div>
-          <div :class="['chat-bubble', msg.sender === 'user' ? 'chat-bubble-primary' : 'chat-bubble-secondary']">
-            <span class="whitespace-pre-wrap">{{ msg.text }}</span>
+          <div :class="['chat-bubble', msg.sender === 'user' ? 'chat-bubble' : 'chat-bubble']">
+            <span class="whitespace-pre-wrap" @click="logger(msg.text)">
+
+              <MarkdownRender v-if="msg.sender === 'bot'" :content="msg.text" :typewriter="true" />
+              <div v-if="msg.sender === 'user'">{{ msg.text }}</div>
+            </span>
             <span v-if="msg.sender === 'bot' && loading && index === messages.length - 1 && !msg.text"
               class="loading loading-dots loading-xs ml-2"></span>
           </div>
-          <div v-if="msg.sources && msg.sources.length" class="chat-footer opacity-50 text-xs mt-1">
+          <div v-if="msg.sources && msg.sources.length" class="chat-footer opacity-80 text-xs mt-1">
             <div class="dropdown dropdown-top dropdown-hover">
               <div tabindex="0" role="button" class="flex items-center gap-1 cursor-pointer hover:text-primary">
                 <FileText :size="12" /> {{ msg.sources.length }} Sources
               </div>
-              <div tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-300 rounded-box w-52">
+              <div tabindex="0" class="dropdown-content z-1 menu p-2 shadow bg-base-100 rounded-box w-52">
                 <div v-for="(source, i) in msg.sources" :key="i"
                   class="text-xs p-1 border-b border-gray-600 last:border-0">
                   {{ source.substring(0, 100) }}...
