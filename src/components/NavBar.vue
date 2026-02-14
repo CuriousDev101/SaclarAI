@@ -16,11 +16,23 @@ const logout = () => {
 </script>
 
 <template>
-  <div class="navbar bg-base-100 border-b border-gray-800">
-    <div class="flex-1">
-      <RouterLink to="/" class="btn btn-ghost text-xl">ScalarAI</RouterLink>
+
+  <div class="navbar bg-base-100/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+    <div class="navbar-start">
+      <div class="dropdown">
+        <label tabindex="0" class="btn btn-ghost lg:hidden">
+          <Menu class="h-5 w-5" />
+        </label>
+        <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-1 p-2 shadow bg-base-100 rounded-box w-52">
+          <li><a>Home</a></li>
+          <li><a>Features</a></li>
+        </ul>
+      </div>
+      <RouterLink to='/' class="btn btn-ghost normal-case text-xl">
+        <span class="font-bold">Scalar<span class="text-primary">AI</span></span>
+      </RouterLink>
     </div>
-    <div class="flex-none">
+    <div class="navbar-end gap-2">
       <ul class="menu menu-horizontal px-1">
         <li v-if="!authStore.isAuthenticated">
           <RouterLink to="/login">Login</RouterLink>
@@ -47,4 +59,5 @@ const logout = () => {
       </ul>
     </div>
   </div>
+
 </template>
